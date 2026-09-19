@@ -22,14 +22,14 @@ int main(void) {
     printf("Length of file (bytes): %ld\n", file_size);
     printf("Number of Rows needed (16 bytes each row): %ld\n", file_size / 16);
 
-    printf("file_contents[4]: %X", file_contents[4]);
-
-    // for (int i = 0; i < file_size; i++) {
-    //   for (int j = 0; j < 16; j++) {
-    //     printf("%07X")
-    //   }
-    //   printf("%02X\n", file_contents[i]);
-    // }
+    printf("hexdump -v");
+    for (int i = 0; i < file_size; i++) {
+      if (i % 16 != 0) {
+        printf("%02X  ", file_contents[i]);
+      } else {
+        printf("\n%07X  %02X  ", i, file_contents[i]);
+      }
+    }
 
     fclose(file);
     free(file_contents);
