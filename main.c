@@ -1,38 +1,65 @@
+#include <complex.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+long get_file_size(FILE *file) {
+  if (fseek(file, 0, SEEK_END) != 0) {
+    perror("Failed to seek to end");
+    return -1L;
+  }
+  long file_size = ftell(file);
+  if (file_size == -1L) {
+    perror("ftell() failed");
+    return -1L;
+  }
+
+  if (fseek(file, 0, SEEK_SET) != 0) {
+    perror("Failed to seek to start");
+    return -1L;
+  }
+  return file_size;
+}
+
+int get_file_contents() {}
+int load_file_contents() {}
+
 int main(void) {
   FILE *file = fopen("resources/invaders.hex", "rb");
-
   if (file == NULL) {
-    printf("File didn't open for some reason.");
+    perror("File didn't open for some reason.");
     return 1;
-  } else {
-    printf("The file opened for some reason.\n");
+  }
+  printf("The file opened for some reason.");
+  long file_size = get_file_size(file);
+  if (file_size == -1L) {
+    fclose(file);
+    return 1;
+  }
 
-    // find the size of the file (bytes) by jumping to the end and back
-    fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
-    rewind(file);
-
-    uint8_t *file_contents = malloc(file_size);
-    fread(file_contents, 1, file_size, file);
-
-    printf("Length of file (bytes): %ld\n", file_size);
-    printf("Number of Rows needed (16 bytes each row): %ld\n", file_size / 16);
-
-    printf("hexdump -v");
-    for (int i = 0; i < file_size; i++) {
-      if (i % 16 != 0) {
-        printf("%02X  ", file_contents[i]);
-      } else {
-        printf("\n%07X  %02X  ", i, file_contents[i]);
-      }
-    }
-
+  size_t buffer_size = (size_t)file_size;
+  uint8_t *file_contents = malloc(buffer_size);
+  if (file_contents == NULL) {
+    perror("malloc failed to allocate memory for file_contents");
+    fclose(file);
+    return 1;
+  }
+  size_t bytes_read = fread(file_contents, 1, buffer_size, file);
+  if (bytes_read != buffer_size) {
+    perror("For some reason, fread() didn't read the whole file...");
     fclose(file);
     free(file_contents);
+    return 1;
   }
+
+  for (size_t i = 0; i < buffer_size; i++) {
+    if (i % 16 == 0) {
+      printf("\n%07zX", i);
+    }
+    printf("  %02X", file_contents[i]);
+  }
+
+  fclose(file);
+  free(file_contents);
   return 0;
 }
