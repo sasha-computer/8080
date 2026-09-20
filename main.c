@@ -21,6 +21,20 @@ long get_file_size(FILE *file) {
   return file_size;
 }
 
+int print_hexdump(size_t buffer_size, uint8_t *file_contents) {
+  for (size_t i = 0; i < buffer_size; i++) {
+    if (i % 16 == 0) {
+      printf("%07zX", i);
+    }
+    printf("  %02X", file_contents[i]);
+
+    if (i % 16 == 15 || i == buffer_size - 1) {
+      printf("\n");
+    }
+  }
+  return 1;
+}
+
 int main(void) {
   FILE *file = fopen("resources/invaders.hex", "rb");
   if (file == NULL) {
@@ -51,18 +65,10 @@ int main(void) {
     return 1;
   }
 
-  for (size_t i = 0; i < buffer_size; i++) {
-    if (i % 16 == 0) {
-      printf("%07zX", i);
-    }
-    printf("  %02X", file_contents[i]);
-
-    if (i % 16 == 15 || i == buffer_size - 1) {
-      printf("\n");
-    }
-  }
+  print_hexdump(buffer_size, file_contents);
 
   fclose(file);
   free(file_contents);
+  printf("Closed file, and freed memory!");
   return 0;
 }
