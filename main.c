@@ -21,16 +21,14 @@ long get_file_size(FILE *file) {
   return file_size;
 }
 
-int get_file_contents() {}
-int load_file_contents() {}
-
 int main(void) {
   FILE *file = fopen("resources/invaders.hex", "rb");
   if (file == NULL) {
     perror("File didn't open for some reason.");
     return 1;
   }
-  printf("The file opened for some reason.");
+
+  printf("The file opened for some reason.\n");
   long file_size = get_file_size(file);
   if (file_size == -1L) {
     fclose(file);
@@ -44,6 +42,7 @@ int main(void) {
     fclose(file);
     return 1;
   }
+
   size_t bytes_read = fread(file_contents, 1, buffer_size, file);
   if (bytes_read != buffer_size) {
     perror("For some reason, fread() didn't read the whole file...");
@@ -54,9 +53,13 @@ int main(void) {
 
   for (size_t i = 0; i < buffer_size; i++) {
     if (i % 16 == 0) {
-      printf("\n%07zX", i);
+      printf("%07zX", i);
     }
     printf("  %02X", file_contents[i]);
+
+    if (i % 16 == 15 || i == buffer_size - 1) {
+      printf("\n");
+    }
   }
 
   fclose(file);
