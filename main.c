@@ -3,72 +3,104 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-long get_file_size(FILE *file) {
-  if (fseek(file, 0, SEEK_END) != 0) {
-    perror("Failed to seek to end");
-    return -1L;
-  }
-  long file_size = ftell(file);
-  if (file_size == -1L) {
-    perror("ftell() failed");
-    return -1L;
-  }
+// pc: program counter (steps)
+// pl: program length (bytes)
+// pb: program buffer (pointer to memory address where program is loaded into memory)
 
-  if (fseek(file, 0, SEEK_SET) != 0) {
-    perror("Failed to seek to start");
-    return -1L;
-  }
-  return file_size;
+size_t pc, pl = 0;
+uint8_t* pb;
+
+size_t
+get_program_length(FILE* program) {
+    if (fseek(program, 0, SEEK_END) != 0) {
+        perror("Failed to seek to end");
+        return -1L;
+    }
+    long pl = ftell(program);
+    if (pl == -1L) {
+        perror("ftell() failed");
+        return -1L;
+    }
+
+    if (fseek(program, 0, SEEK_SET) != 0) {
+        perror("Failed to seek to start");
+        return -1L;
+    }
+    return (size_t)pl;
 }
 
-int print_hexdump(size_t buffer_size, uint8_t *file_contents) {
-  for (size_t i = 0; i < buffer_size; i++) {
-    if (i % 16 == 0) {
-      printf("%07zX", i);
+int
+hexdump(void) {
+    FILE* program = fopen("resources/invaders.hex", "rb");
+    if (program == NULL) {
+        perror("Program didn't open for some reason.");
+        return 1;
     }
-    printf("  %02X", file_contents[i]);
+    size_t pl = get_program_length(program);
+    if (pl == -1) {
+        fclose(program);
+        return 1;
+    }
 
-    if (i % 16 == 15 || i == buffer_size - 1) {
-      printf("\n");
+    pb = malloc(pl);
+    if (pb == NULL) {
+        perror("malloc failed to allocate memory for pb");
+        fclose(program);
+        return 1;
     }
-  }
-  return 1;
+
+    size_t bytes_read = fread(pb, 1, pl, program);
+    if (bytes_read != pl) {
+        perror("For some reason, fread() didn't read the whole program...");
+        fclose(program);
+        free(pb);
+        return 1;
+    }
+
+    FILE* hexdump = fopen("resources/invaders.txt", "w");
+    if (hexdump == NULL) {
+        perror("Can not write to invaders.txt for hexdump");
+        return 1;
+    }
+
+    while (pc < pl) {
+        if (pc % 16 == 0) {
+            fprintf(hexdump, "%07zX", pc);
+        }
+        fprintf(hexdump, "  %02X", pb[pc]);
+
+        if (pc % 16 == 15 || pc == pl - 1) {
+            fprintf(hexdump, "\n");
+        }
+        pc++;
+    }
+
+    fclose(hexdump);
+    free(pb);
+    printf("Closed program, hexdump and freed memory.");
+    printf("Wrote hexdump to resources/invaders.txt");
+
+    return 0;
 }
 
-int main(void) {
-  FILE *file = fopen("resources/invaders.hex", "rb");
-  if (file == NULL) {
-    perror("File didn't open for some reason.");
-    return 1;
-  }
+// int
+// disassemble_op(size_t idx, size_t pl, uint8_t* pb) {
+//     int op_bytes = 1;
+//     uint8_t* current_op = &pb[idx];
+//     switch (*current_op) {
+//         case 0x00: printf("NOP"); break;
+//         case 0x01:
+//             printf("LXI    B, %02x  %02x", current_op[2], current_op[1]);
+//             op_bytes = 3;
+//             break;
+//         case 0xc3: printf("JMP"); break;
+//     }
+//     printf("\n");
+//     return op_bytes;
+// }
 
-  printf("The file opened for some reason.\n");
-  long file_size = get_file_size(file);
-  if (file_size == -1L) {
-    fclose(file);
-    return 1;
-  }
-
-  size_t buffer_size = (size_t)file_size;
-  uint8_t *file_contents = malloc(buffer_size);
-  if (file_contents == NULL) {
-    perror("malloc failed to allocate memory for file_contents");
-    fclose(file);
-    return 1;
-  }
-
-  size_t bytes_read = fread(file_contents, 1, buffer_size, file);
-  if (bytes_read != buffer_size) {
-    perror("For some reason, fread() didn't read the whole file...");
-    fclose(file);
-    free(file_contents);
-    return 1;
-  }
-
-  print_hexdump(buffer_size, file_contents);
-
-  fclose(file);
-  free(file_contents);
-  printf("Closed file, and freed memory!");
-  return 0;
+int
+main(void) {
+    hexdump();
+    return 0;
 }
