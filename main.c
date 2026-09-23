@@ -2,33 +2,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "hexdump.h"
+#include "dissambler.h"
 #include "utils.h"
 
 // pc: program counter (steps)
-// pl: program length (bytes)
-// pb: program buffer (pointer to starting memory address where program is loaded into memory)
-size_t pc, pl = 0;
-uint8_t* pb;
-
-// int
-// disassemble_op(size_t idx, size_t pl, uint8_t* pb) {
-//     int op_bytes = 1;
-//     uint8_t* current_op = &pb[idx];
-//     switch (*current_op) {
-//         case 0x00: printf("NOP"); break;
-//         case 0x01:
-//             printf("LXI    B, %02x  %02x", current_op[2], current_op[1]);
-//             op_bytes = 3;
-//             break;
-//         case 0xc3: printf("JMP"); break;
-//     }
-//     printf("\n");
-//     return op_bytes;
-// }
+// length: program length (bytes)
+// buffer: program buffer (pointer to starting memory address where program is loaded into memory)
+uint8_t* buffer;
+size_t* length = 0;
 
 int
 main(void) {
-    hexdump();
+    FILE* program = fopen("resources/invaders.hex", "rb");
+    if (program == NULL) {
+        perror("Program didn't open for some reason.");
+        return 1;
+    }
+
+    if (program_load(program, buffer, length) != 0) {
+        fclose(program);
+        return 1;
+    }
+
+    // if (program_hexdump(buffer, length) != 0) {
+    //     fclose(program);
+    //     return 1;
+    // }
+
+    // if (dissamble_program(buffer, length) != 0) {
+    //     fclose(program);
+    //     return 1;
+    // }
+
     return 0;
 }
