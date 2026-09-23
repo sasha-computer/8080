@@ -2,3 +2,4 @@
 .idea/
 invaders.*
 main
+*.o
