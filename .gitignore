@@ -2,4 +2,5 @@
 .idea/
 invaders.*
 main
+main.dSYM/
 *.o

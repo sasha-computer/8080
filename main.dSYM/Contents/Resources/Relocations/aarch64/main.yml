@@ -1,5 +1,0 @@
----
-triple:          'arm64-apple-darwin'
-binary-path:     '/Users/nas/Developer/8080/main'
-relocations:     []
-...

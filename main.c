@@ -5,34 +5,35 @@
 #include "dissambler.h"
 #include "utils.h"
 
-// pc: program counter (steps)
-// length: program length (bytes)
-// buffer: program buffer (pointer to starting memory address where program is loaded into memory)
-uint8_t* buffer;
-size_t* length = 0;
+// memory address of first byte of program stored in memory.
+uint8_t *program_bytes;
+
+// file length (bytes)
+size_t program_length = 0;
 
 int
 main(void) {
-    FILE* program = fopen("resources/invaders.hex", "rb");
-    if (program == NULL) {
-        perror("Program didn't open for some reason.");
+    FILE *file = fopen("resources/invaders.hex", "rb");
+    if (file == NULL) {
+        perror("file didn't open for some reason.");
         return 1;
     }
 
-    if (program_load(program, buffer, length) != 0) {
-        fclose(program);
+    if (program_load(file, &program_bytes, &program_length) != 0) {
+        fclose(file);
         return 1;
     }
 
-    // if (program_hexdump(buffer, length) != 0) {
-    //     fclose(program);
-    //     return 1;
-    // }
+    if (program_hexdump(program_bytes, program_length) != 0) {
+        fclose(file);
+        return 1;
+    }
+    //
+    //     if (dissamble_file(buffer, &length) != 0) {
+    //         fclose(file);
+    //         return 1;
+    //     }
 
-    // if (dissamble_program(buffer, length) != 0) {
-    //     fclose(program);
-    //     return 1;
-    // }
-
+    free(program_bytes);
     return 0;
 }
