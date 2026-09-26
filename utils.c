@@ -32,18 +32,18 @@ program_hexdump(uint8_t *program_bytes, size_t length) {
 }
 
 int
-file_get_length(FILE *program, size_t *length) {
-    if (fseek(program, 0, SEEK_END) != 0) {
+file_get_length(FILE *file, size_t *length) {
+    if (fseek(file, 0, SEEK_END) != 0) {
         perror("Failed to seek program stream to end");
         return 1;
     }
-    long end = ftell(program);
+    long end = ftell(file);
     if (end == -1L) {
         perror("ftell() failed");
         return 1;
     }
 
-    if (fseek(program, 0, SEEK_SET) != 0) {
+    if (fseek(file, 0, SEEK_SET) != 0) {
         perror("Failed to seek program stream to start");
         return 1;
     }
@@ -70,6 +70,7 @@ program_load(FILE *file, uint8_t **program_bytes, size_t *program_length) {
     size_t bytes_read = fread(bytes, 1, length, file);
     if (bytes_read != length) {
         perror("For some reason, fread() didn't read the whole program...");
+        free(program_bytes);
         free(bytes);
         return 1;
     }

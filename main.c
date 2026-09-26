@@ -5,7 +5,7 @@
 #include "dissambler.h"
 #include "utils.h"
 
-// memory address of first byte of program stored in memory.
+// memory address of first byte of program stored in memory
 uint8_t *program_bytes;
 
 // file length (bytes)
@@ -28,11 +28,11 @@ main(void) {
         fclose(file);
         return 1;
     }
-    //
-    //     if (dissamble_file(buffer, &length) != 0) {
-    //         fclose(file);
-    //         return 1;
-    //     }
+
+    if (dissamble_program(program_length, program_bytes) != 0) {
+        fclose(file);
+        return 1;
+    }
 
     free(program_bytes);
     return 0;
